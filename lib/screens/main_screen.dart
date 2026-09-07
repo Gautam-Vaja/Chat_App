@@ -47,18 +47,12 @@ class _MainScreenState extends State<MainScreen> {
     ];
 
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border(
-            top: BorderSide(
-              color: const Color(0xFFF1F3F9),
-              width: 1.0,
-            ),
+            top: BorderSide(color: const Color(0xFFF1F3F9), width: 1.0),
           ),
           boxShadow: [
             BoxShadow(
@@ -77,12 +71,8 @@ class _MainScreenState extends State<MainScreen> {
           unselectedItemColor: unselectedColor,
           selectedFontSize: 12,
           unselectedFontSize: 12,
-          selectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w600,
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w500,
-          ),
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
           elevation: 0,
           items: const [
             BottomNavigationBarItem(
@@ -99,24 +89,13 @@ class _MainScreenState extends State<MainScreen> {
             BottomNavigationBarItem(
               icon: Padding(
                 padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.call_outlined),
-              ),
-              activeIcon: Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.call),
-              ),
-              label: 'Calls',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(bottom: 4),
                 child: Icon(Icons.people_outline),
               ),
               activeIcon: Padding(
                 padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.people),
+                child: Icon(Icons.history),
               ),
-              label: 'People',
+              label: 'History',
             ),
             BottomNavigationBarItem(
               icon: Padding(
@@ -155,11 +134,7 @@ class _MainScreenState extends State<MainScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 64,
-              color: const Color(0xFFCBD5E1),
-            ),
+            Icon(icon, size: 64, color: const Color(0xFFCBD5E1)),
             const SizedBox(height: 16),
             Text(
               "No $title Yet",
@@ -172,10 +147,7 @@ class _MainScreenState extends State<MainScreen> {
             const SizedBox(height: 8),
             Text(
               "Your $title will show up here.",
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF64748B),
-              ),
+              style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
             ),
           ],
         ),
