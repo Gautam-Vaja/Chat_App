@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Chat App',
+      title: 'Gemini Chat',
       debugShowCheckedModeBanner: false,
       routerConfig: appRouter,
       theme: ThemeData(

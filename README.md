@@ -47,10 +47,9 @@ chat_app/
 │   │   ├── app_images.dart    # Asset constants
 │   │   └── app_strings.dart   # String constants
 │   ├── screens/
-│   │   ├── home_screen.dart   # Message list, search, pinned & recent chats
-│   │   ├── main_screen.dart   # Bottom navigation bar & tab shell
+│   │   ├── home_screen.dart   # Main chat screen with Gemini AI
 │   │   ├── profile_screen.dart# User profile & preferences
-│   │   └── user_screen/       # Active chat conversation screen with Gemini
+│   │   └── user_screen/       # Conversation screen
 │   │       └── user_screen.dart
 │   ├── services/
 │   │   └── gemini_service.dart# Google Gemini AI API integration
@@ -100,16 +99,15 @@ Ensure you have the following installed on your machine:
 
 ## 📱 Application Flow & Screens
 
-1. **Main Navigation**: Bottom navigation bar providing quick switching between:
-   - **Chats**: Pinned conversations and recent inbox.
-   - **Calls**: Call logs and audio/video placeholder.
-   - **People**: Contacts list.
-   - **Profile / Settings**: Profile overview, account settings, and preferences.
-2. **Chat Screen (`UserScreen`)**:
+1. **Home / Chat Screen (`HomeScreen`)**:
+   - Direct entry point into the chat experience.
    - Real-time conversation interface with Gemini AI.
    - Dynamic message rendering with distinct user vs. AI message bubbles.
    - Typing indicator and auto-scroll to the latest response.
+   - Quick action controls (calls, video, and menu to clear chat history).
    - Automatic local storage of sent and received messages in SQLite.
+2. **Profile / Settings Screen (`ProfileScreen`)**:
+   - Profile overview, account settings, preferences, and notifications.
 3. **Database Management**:
    - `DatabaseHelper` manages table initialization (`messages`), message retrieval by `chat_id`, insertion, and clearing conversation histories.
 

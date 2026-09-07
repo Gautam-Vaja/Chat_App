@@ -1,5 +1,7 @@
 import 'package:chat_app/core/app_images.dart';
+import 'package:chat_app/core/app_strings.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfileScreen extends StatelessWidget {
   final VoidCallback? onBack;
@@ -19,22 +21,14 @@ class ProfileScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: primaryColor,
-            size: 24,
-          ),
+          icon: const Icon(Icons.arrow_back, color: primaryColor, size: 24),
           onPressed: () {
-            if (onBack != null) {
-              onBack!();
-            } else if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            }
+            context.go('/home');
           },
         ),
         centerTitle: true,
         title: const Text(
-          "Profile",
+          AppStrings.setting,
           style: TextStyle(
             color: primaryColor,
             fontSize: 20,
@@ -51,142 +45,113 @@ class ProfileScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 10),
               // Profile Avatar with edit button
-              Center(
-                child: Stack(
+              _buildCard([
+                Row(
                   children: [
-                    Container(
-                      width: 104,
-                      height: 104,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        image: const DecorationImage(
-                          image: AssetImage(AppImages.sarah),
-                          fit: BoxFit.cover,
-                        ),
-                        border: Border.all(
-                          color: Colors.white,
-                          width: 3,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 2,
-                      right: 2,
-                      child: GestureDetector(
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Change profile photo"),
-                              duration: Duration(seconds: 1),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(7),
+                    Stack(
+                      children: [
+                        Container(
+                          width: 90,
+                          height: 90,
                           decoration: BoxDecoration(
-                            color: primaryColor,
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: const Icon(
-                            Icons.edit,
-                            size: 15,
-                            color: Colors.white,
+                            image: const DecorationImage(
+                              image: AssetImage(AppImages.geminiStar),
+                              fit: BoxFit.cover,
+                            ),
+                            border: Border.all(color: Colors.white, width: 3),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
+                      ],
+                    ),
+                    const SizedBox(width: 20),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          AppStrings.appName,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: textDarkColor,
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF22C55E),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            const Text(
+                              AppStrings.version,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: textSecondaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ),
+              ]),
               const SizedBox(height: 14),
 
               // Name
-              const Text(
-                "Sarah Jenkins",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: textDarkColor,
-                ),
-              ),
               const SizedBox(height: 6),
 
               // Available Status
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF22C55E),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  const Text(
-                    "Available",
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: textSecondaryColor,
-                    ),
-                  ),
-                ],
-              ),
               const SizedBox(height: 28),
 
               // ACCOUNT Section
-              _buildSectionHeader("ACCOUNT"),
               const SizedBox(height: 8),
               _buildCard([
                 _buildMenuItem(
                   context,
-                  icon: Icons.person_outline,
-                  title: "Edit Profile",
+                  icon: Icons.tips_and_updates_outlined,
+                  title: AppStrings.theme,
                   onTap: () {},
                 ),
                 _buildDivider(),
                 _buildMenuItem(
                   context,
-                  icon: Icons.lock_outline,
-                  title: "Privacy",
+                  icon: Icons.delete_outline,
+                  title: AppStrings.clearChatHistory,
                   onTap: () {},
                 ),
                 _buildDivider(),
                 _buildMenuItem(
                   context,
-                  icon: Icons.shield_outlined,
-                  title: "Security",
+                  icon: Icons.auto_awesome,
+                  title: AppStrings.aboutGeminiApi,
                   onTap: () {},
                 ),
-              ]),
-
-              const SizedBox(height: 24),
-
-              // NOTIFICATIONS Section
-              _buildSectionHeader("NOTIFICATIONS"),
-              const SizedBox(height: 8),
-              _buildCard([
                 _buildMenuItem(
                   context,
-                  icon: Icons.notifications_none_outlined,
-                  title: "Push Notifications",
+                  icon: Icons.privacy_tip_rounded,
+                  title: AppStrings.privacyPolicy,
                   onTap: () {},
                 ),
                 _buildDivider(),
                 _buildMenuItem(
                   context,
-                  icon: Icons.volume_up_outlined,
-                  title: "Sound & Vibrate",
+                  icon: Icons.description_outlined,
+                  title: AppStrings.termsOfService,
                   onTap: () {},
                 ),
               ]),
@@ -246,7 +211,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                     child: const Text(
-                      "Log Out",
+                      AppStrings.logout,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -264,33 +229,12 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 4),
-        child: Text(
-          title,
-          style: const TextStyle(
-            color: Color(0xFF3525CD),
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.8,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildCard(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFEDF0F7),
-          width: 1.2,
-        ),
+        border: Border.all(color: const Color(0xFFEDF0F7), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -299,9 +243,7 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        children: children,
-      ),
+      child: Column(children: children),
     );
   }
 
@@ -318,11 +260,7 @@ class ProfileScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            Icon(
-              icon,
-              size: 22,
-              color: const Color(0xFF64748B),
-            ),
+            Icon(icon, size: 22, color: const Color(0xFF64748B)),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
@@ -334,11 +272,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              size: 20,
-              color: Color(0xFFCBD5E1),
-            ),
+            const Icon(Icons.chevron_right, size: 20, color: Color(0xFFCBD5E1)),
           ],
         ),
       ),
