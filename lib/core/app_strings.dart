@@ -19,4 +19,5 @@ class AppStrings {
   static const String splashSubtitle = "Chat with Google's Gemini AI";
   static const String splashTagline = "Smarter conversations.\nBetter answers.";
   static const String newChat = "New Chat";
+  static const String seeMore = "See More";
 }

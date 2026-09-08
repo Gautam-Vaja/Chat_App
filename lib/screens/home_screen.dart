@@ -143,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             children: [
-              _buildSearchBar(),
+              // _buildSearchBar(),
               const SizedBox(height: 18),
               _buildRecentHistoryHeader(),
               const SizedBox(height: 12),
@@ -207,52 +207,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSearchBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: AppStrings.serchchat,
-          hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-          prefixIcon: const Icon(
-            Icons.search_rounded,
-            color: Color(0xFF64748B),
-            size: 22,
-          ),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(
-                    Icons.clear_rounded,
-                    size: 18,
-                    color: Color(0xFF94A3B8),
-                  ),
-                  onPressed: () {
-                    _searchController.clear();
-                  },
-                )
-              : null,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 14,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildRecentHistoryHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -284,6 +238,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+            const SizedBox(width: 160),
+            InkWell(
+              onTap: () {
+                context.go('/history');
+              },
+              child: Text(
+                AppStrings.seeMore,
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           ],
         ),
       ],

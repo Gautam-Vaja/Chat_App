@@ -21,11 +21,16 @@ class _NewChatState extends State<NewChat> {
 
   final List<Map<String, String>> _messages = [];
   bool _isLoading = false;
+  String? _chatId;
 
   @override
   void initState() {
     super.initState();
-    _loadMessages();
+    _chatId = widget.userName;
+    // Only load previous messages if an existing chat was selected
+    if (_chatId != null && _chatId!.isNotEmpty) {
+      _loadMessages();
+    }
   }
 
   @override
@@ -36,8 +41,8 @@ class _NewChatState extends State<NewChat> {
   }
 
   Future<void> _loadMessages() async {
-    final chatId = widget.userName ?? AppStrings.chatiq;
-    final savedMessages = await DatabaseHelper.instance.getMessage(chatId);
+    if (_chatId == null) return;
+    final savedMessages = await DatabaseHelper.instance.getMessage(_chatId!);
     if (mounted) {
       setState(() {
         _messages.clear();
@@ -56,7 +61,15 @@ class _NewChatState extends State<NewChat> {
     final text = _messageController.text.trim();
     if (text.isEmpty || _isLoading) return;
 
-    final chatId = widget.userName ?? AppStrings.chatiq;
+    // For a brand new chat, generate a title/ID from the first question
+    if (_chatId == null || _chatId!.isEmpty) {
+      final cleanTitle = text.replaceAll('\n', ' ').trim();
+      _chatId = cleanTitle.length > 25
+          ? '${cleanTitle.substring(0, 25)}...'
+          : cleanTitle;
+    }
+
+    final currentChatId = _chatId!;
 
     setState(() {
       _messages.add({'sender': 'user', 'text': text});
@@ -67,7 +80,7 @@ class _NewChatState extends State<NewChat> {
 
     // 1. Save user message in database
     await DatabaseHelper.instance.insertMessage(
-      chatId: chatId,
+      chatId: currentChatId,
       role: 'user',
       message: text,
     );
@@ -83,7 +96,7 @@ class _NewChatState extends State<NewChat> {
 
         // 2. Save Gemini response in database
         await DatabaseHelper.instance.insertMessage(
-          chatId: chatId,
+          chatId: currentChatId,
           role: 'gemini',
           message: response,
         );
@@ -99,7 +112,7 @@ class _NewChatState extends State<NewChat> {
         _scrollToBottom();
 
         await DatabaseHelper.instance.insertMessage(
-          chatId: chatId,
+          chatId: currentChatId,
           role: 'gemini',
           message: errorText,
         );
@@ -121,7 +134,7 @@ class _NewChatState extends State<NewChat> {
 
   @override
   Widget build(BuildContext context) {
-    final displayName = widget.userName ?? AppStrings.chatiq;
+    final displayName = _chatId ?? widget.userName ?? AppStrings.gemini;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -272,18 +285,17 @@ class _NewChatState extends State<NewChat> {
           backgroundImage: AssetImage(AppImages.geminiStar),
         ),
         const SizedBox(width: 12),
-        Text(
-          displayName,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            color: Color(0xFF3525CD),
+        Expanded(
+          child: Text(
+            displayName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: Color(0xFF3525CD),
+            ),
           ),
-        ),
-        const Spacer(),
-        IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.history_outlined, size: 24),
         ),
         IconButton(
           onPressed: () {

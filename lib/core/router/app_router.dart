@@ -1,4 +1,5 @@
 import 'package:chat_app/screens/chats/new_chat.dart';
+import 'package:chat_app/screens/history/history_screen.dart';
 import 'package:chat_app/screens/home_screen.dart';
 import 'package:chat_app/screens/profile_screen.dart';
 import 'package:chat_app/screens/splash_screen.dart';
@@ -9,6 +10,7 @@ class AppRoutes {
   static const String home = '/home';
   static const String settings = '/settings';
   static const String newChat = '/newChat';
+  static const String history = '/history';
 }
 
 final GoRouter appRouter = GoRouter(
@@ -32,9 +34,12 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.newChat,
       name: 'newChat',
-      builder: (context, state) => NewChat(
-        userName: state.extra as String?,
-      ),
+      builder: (context, state) => NewChat(userName: state.extra as String?),
+    ),
+    GoRoute(
+      path: AppRoutes.history,
+      name: 'history',
+      builder: (context, state) => HistoryScreen(),
     ),
   ],
 );
