@@ -61,6 +61,24 @@ class DatabaseHelper {
     );
   }
 
+  Future<List<Map<String, dynamic>>> getRecentChats() async {
+    final db = await database;
+    try {
+      return await db.rawQuery('''
+        SELECT m.chat_id, m.message, m.role, m.created_at
+        FROM messages m
+        INNER JOIN (
+          SELECT chat_id, MAX(id) as max_id
+          FROM messages
+          GROUP BY chat_id
+        ) latest ON m.id = latest.max_id
+        ORDER BY m.created_at DESC
+      ''');
+    } catch (_) {
+      return [];
+    }
+  }
+
   Future<int> deleteChat(String chatId) async {
     final db = await database;
     return await db.delete(

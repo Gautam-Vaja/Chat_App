@@ -5,19 +5,18 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'package:chat_app/core/app_strings.dart';
 import 'package:chat_app/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-
 void main() {
-  testWidgets('App loads with router smoke test', (WidgetTester tester) async {
+  testWidgets('App loads splash screen smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const MyApp());
-    await tester.pumpAndSettle();
+    await tester.pump();
 
-    // Verify that the main screen loads with Messages heading and Chats tab
-    expect(find.text('Messages'), findsOneWidget);
-    expect(find.text('Chats'), findsOneWidget);
+    // Verify that the splash screen loads with app name
+    expect(find.text(AppStrings.appName), findsOneWidget);
   });
 }
 

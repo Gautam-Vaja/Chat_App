@@ -7,6 +7,7 @@ class AppStrings {
   static const String pinned = "PINNED";
   static const String recent = "RECENT";
   static const String setting = "Settings";
+  static const String recentHistory = "Recent History";
   static const String theme = "Theme";
   static const String clearChatHistory = "Clear Chat History";
   static const String aboutGeminiApi = "About Gemini API";
@@ -17,4 +18,5 @@ class AppStrings {
   static const String version = "Gemini 3.7 Flash";
   static const String splashSubtitle = "Chat with Google's Gemini AI";
   static const String splashTagline = "Smarter conversations.\nBetter answers.";
+  static const String newChat = "New Chat";
 }
