@@ -135,19 +135,36 @@ class _NewChatState extends State<NewChat> {
   @override
   Widget build(BuildContext context) {
     final displayName = _chatId ?? widget.userName ?? AppStrings.gemini;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryColor = theme.colorScheme.primary;
+    final backgroundColor = theme.scaffoldBackgroundColor;
+    final cardColor = theme.cardColor;
+    final textDarkColor = isDark ? Colors.white : const Color(0xFF1E202B);
+    final textSecondaryColor =
+        isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final borderColor =
+        isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
+    final aiBubbleColor =
+        isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
             context.go('/home');
           },
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: primaryColor),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: cardColor,
         elevation: 0,
-        title: _buildHeading(displayName),
+        surfaceTintColor: Colors.transparent,
+        title: _buildHeading(displayName, primaryColor, textSecondaryColor),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: borderColor, height: 1),
+        ),
       ),
       body: Column(
         children: [
@@ -164,18 +181,18 @@ class _NewChatState extends State<NewChat> {
                         const SizedBox(height: 16),
                         Text(
                           "Chat with $displayName",
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E202B),
+                            color: textDarkColor,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           "Ask anything to start the conversation!",
                           style: TextStyle(
                             fontSize: 14,
-                            color: Color(0xFF64748B),
+                            color: textSecondaryColor,
                           ),
                         ),
                       ],
@@ -199,10 +216,10 @@ class _NewChatState extends State<NewChat> {
                               vertical: 12,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
+                              color: aiBubbleColor,
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 SizedBox(
@@ -210,13 +227,14 @@ class _NewChatState extends State<NewChat> {
                                   height: 14,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
+                                    color: primaryColor,
                                   ),
                                 ),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Text(
                                   "Gemini is typing...",
                                   style: TextStyle(
-                                    color: Color(0xFF64748B),
+                                    color: textSecondaryColor,
                                     fontSize: 13,
                                   ),
                                 ),
@@ -243,9 +261,7 @@ class _NewChatState extends State<NewChat> {
                             maxWidth: MediaQuery.of(context).size.width * 0.75,
                           ),
                           decoration: BoxDecoration(
-                            color: isUser
-                                ? const Color(0xFF3525CD)
-                                : const Color(0xFFF1F5F9),
+                            color: isUser ? primaryColor : aiBubbleColor,
                             borderRadius: BorderRadius.only(
                               topLeft: const Radius.circular(16),
                               topRight: const Radius.circular(16),
@@ -260,9 +276,7 @@ class _NewChatState extends State<NewChat> {
                           child: Text(
                             msg['text'] ?? '',
                             style: TextStyle(
-                              color: isUser
-                                  ? Colors.white
-                                  : const Color(0xFF1E202B),
+                              color: isUser ? Colors.white : textDarkColor,
                               fontSize: 15,
                             ),
                           ),
@@ -271,13 +285,24 @@ class _NewChatState extends State<NewChat> {
                     },
                   ),
           ),
-          _buildMessageSender(),
+          _buildMessageSender(
+            isDark,
+            cardColor,
+            borderColor,
+            primaryColor,
+            textDarkColor,
+            textSecondaryColor,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildHeading(String displayName) {
+  Widget _buildHeading(
+    String displayName,
+    Color primaryColor,
+    Color textSecondaryColor,
+  ) {
     return Row(
       children: [
         const CircleAvatar(
@@ -290,10 +315,10 @@ class _NewChatState extends State<NewChat> {
             displayName,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 18,
-              color: Color(0xFF3525CD),
+              color: primaryColor,
             ),
           ),
         ),
@@ -301,18 +326,25 @@ class _NewChatState extends State<NewChat> {
           onPressed: () {
             context.go('/settings');
           },
-          icon: const Icon(Icons.settings, size: 24),
+          icon: Icon(Icons.settings, size: 24, color: textSecondaryColor),
         ),
       ],
     );
   }
 
-  Widget _buildMessageSender() {
+  Widget _buildMessageSender(
+    bool isDark,
+    Color cardColor,
+    Color borderColor,
+    Color primaryColor,
+    Color textDarkColor,
+    Color textSecondaryColor,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1)),
+      decoration: BoxDecoration(
+        color: cardColor,
+        border: Border(top: BorderSide(color: borderColor, width: 1)),
       ),
       child: SafeArea(
         child: Row(
@@ -322,9 +354,9 @@ class _NewChatState extends State<NewChat> {
               onPressed: () {
                 // Action for attachments / media
               },
-              icon: const Icon(
+              icon: Icon(
                 Icons.add_circle_outline_rounded,
-                color: Color(0xFF475569),
+                color: textSecondaryColor,
                 size: 28,
               ),
               splashRadius: 24,
@@ -339,10 +371,10 @@ class _NewChatState extends State<NewChat> {
                 height: 48,
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF0F172A) : Colors.white,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: const Color(0xFFCBD5E1),
+                    color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
                     width: 1.2,
                   ),
                 ),
@@ -351,16 +383,17 @@ class _NewChatState extends State<NewChat> {
                     Expanded(
                       child: TextField(
                         controller: _messageController,
+                        style: TextStyle(color: textDarkColor, fontSize: 15),
                         onSubmitted: (_) => _sendMessage(),
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: "Message...",
                           hintStyle: TextStyle(
-                            color: Color(0xFF94A3B8),
+                            color: textSecondaryColor,
                             fontSize: 15,
                           ),
                           border: InputBorder.none,
                           isDense: true,
-                          contentPadding: EdgeInsets.symmetric(vertical: 12),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                       ),
                     ),
@@ -368,9 +401,9 @@ class _NewChatState extends State<NewChat> {
                       onPressed: () {
                         // Open emoji picker
                       },
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.sentiment_satisfied_alt_outlined,
-                        color: Color(0xFF475569),
+                        color: textSecondaryColor,
                         size: 22,
                       ),
                       padding: EdgeInsets.zero,
@@ -387,8 +420,8 @@ class _NewChatState extends State<NewChat> {
             Container(
               width: 44,
               height: 44,
-              decoration: const BoxDecoration(
-                color: Color(0xFF4F46E5),
+              decoration: BoxDecoration(
+                color: primaryColor,
                 shape: BoxShape.circle,
               ),
               child: IconButton(

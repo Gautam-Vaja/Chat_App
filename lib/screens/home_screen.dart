@@ -104,19 +104,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF3525CD);
-    const backgroundColor = Color(0xFFF8FAFC);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryColor = theme.colorScheme.primary;
+    final backgroundColor = theme.scaffoldBackgroundColor;
+    final cardColor = theme.cardColor;
+    final textDarkColor = isDark ? Colors.white : const Color(0xFF1E202B);
+    final textSecondaryColor =
+        isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final borderColor =
+        isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
 
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: cardColor,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
-        title: _buildHeading(),
+        title: _buildHeading(isDark, textSecondaryColor),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: const Color(0xFFF1F5F9), height: 1),
+          child: Container(color: borderColor, height: 1),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -143,11 +151,21 @@ class _HomeScreenState extends State<HomeScreen> {
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             children: [
-              // _buildSearchBar(),
               const SizedBox(height: 18),
-              _buildRecentHistoryHeader(),
+              _buildRecentHistoryHeader(
+                isDark,
+                primaryColor,
+                textDarkColor,
+              ),
               const SizedBox(height: 12),
-              _buildRecentChatsContent(),
+              _buildRecentChatsContent(
+                isDark,
+                cardColor,
+                borderColor,
+                primaryColor,
+                textDarkColor,
+                textSecondaryColor,
+              ),
             ],
           ),
         ),
@@ -155,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeading() {
+  Widget _buildHeading(bool isDark, Color textSecondaryColor) {
     return Row(
       children: [
         Container(
@@ -173,9 +191,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const SizedBox(width: 10),
-        Text(
+        const Text(
           AppStrings.gemini,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 20,
             color: Color(0xFF3525CD),
@@ -186,10 +204,10 @@ class _HomeScreenState extends State<HomeScreen> {
         IconButton(
           tooltip: 'Refresh',
           onPressed: _loadRecentChats,
-          icon: const Icon(
+          icon: Icon(
             Icons.refresh_rounded,
             size: 22,
-            color: Color(0xFF475569),
+            color: textSecondaryColor,
           ),
         ),
         IconButton(
@@ -197,28 +215,32 @@ class _HomeScreenState extends State<HomeScreen> {
           onPressed: () {
             context.go('/settings');
           },
-          icon: const Icon(
+          icon: Icon(
             Icons.settings_outlined,
             size: 22,
-            color: Color(0xFF475569),
+            color: textSecondaryColor,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildRecentHistoryHeader() {
+  Widget _buildRecentHistoryHeader(
+    bool isDark,
+    Color primaryColor,
+    Color textDarkColor,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
           children: [
-            const Text(
+            Text(
               AppStrings.recentHistory,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E202B),
+                color: textDarkColor,
               ),
             ),
             const SizedBox(width: 8),
@@ -226,52 +248,65 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3525CD).withValues(alpha: 0.1),
+                  color: primaryColor.withValues(alpha: isDark ? 0.2 : 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  '${_filteredChats.length}',
-                  style: const TextStyle(
+                  '${_filteredChats.length > 5 ? 5 : _filteredChats.length}',
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF3525CD),
+                    color: primaryColor,
                   ),
                 ),
               ),
-            const SizedBox(width: 160),
-            InkWell(
-              onTap: () {
-                context.go('/history');
-              },
-              child: Text(
-                AppStrings.seeMore,
-                style: TextStyle(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
           ],
+        ),
+        InkWell(
+          onTap: () {
+            context.go('/history');
+          },
+          child: const Text(
+            AppStrings.seeMore,
+            style: TextStyle(
+              color: Colors.blue,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildRecentChatsContent() {
+  Widget _buildRecentChatsContent(
+    bool isDark,
+    Color cardColor,
+    Color borderColor,
+    Color primaryColor,
+    Color textDarkColor,
+    Color textSecondaryColor,
+  ) {
     if (_isLoading) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 40),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40),
         child: Center(
           child: CircularProgressIndicator(
             strokeWidth: 2.5,
-            color: Color(0xFF3525CD),
+            color: primaryColor,
           ),
         ),
       );
     }
 
     if (_allRecentChats.isEmpty) {
-      return _buildEmptyState();
+      return _buildEmptyState(
+        isDark,
+        cardColor,
+        borderColor,
+        primaryColor,
+        textDarkColor,
+        textSecondaryColor,
+      );
     }
 
     if (_filteredChats.isEmpty) {
@@ -288,7 +323,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 12),
               Text(
                 'No conversations matching "${_searchController.text}"',
-                style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+                style: TextStyle(fontSize: 14, color: textSecondaryColor),
               ),
             ],
           ),
@@ -296,13 +331,15 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    final displayChats = _filteredChats.take(5).toList();
+
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: _filteredChats.length,
+      itemCount: displayChats.length,
       separatorBuilder: (context, index) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
-        final chat = _filteredChats[index];
+        final chat = displayChats[index];
         final chatId = chat['chat_id']?.toString() ?? AppStrings.chatiq;
         final lastMessage = chat['message']?.toString() ?? '';
         final role = chat['role']?.toString() ?? 'user';
@@ -351,7 +388,7 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           onDismissed: (_) => _deleteChat(chatId),
           child: Material(
-            color: Colors.white,
+            color: cardColor,
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
@@ -365,10 +402,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFF1F5F9)),
+                  border: Border.all(color: borderColor),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.02),
+                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -380,7 +417,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF3525CD).withValues(alpha: 0.08),
+                        color: primaryColor.withValues(alpha: isDark ? 0.2 : 0.08),
                         shape: BoxShape.circle,
                       ),
                       child: Center(
@@ -403,18 +440,18 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               Text(
                                 chatId,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
-                                  color: Color(0xFF1E202B),
+                                  color: textDarkColor,
                                 ),
                               ),
                               if (timeText.isNotEmpty)
                                 Text(
                                   timeText,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
-                                    color: Color(0xFF94A3B8),
+                                    color: textSecondaryColor,
                                   ),
                                 ),
                             ],
@@ -424,19 +461,19 @@ class _HomeScreenState extends State<HomeScreen> {
                             role == 'user' ? 'You: $lastMessage' : lastMessage,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: Color(0xFF64748B),
+                              color: textSecondaryColor,
                             ),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Icon(
+                    Icon(
                       Icons.arrow_forward_ios_rounded,
                       size: 14,
-                      color: Color(0xFFCBD5E1),
+                      color: isDark ? Colors.grey[600] : const Color(0xFFCBD5E1),
                     ),
                   ],
                 ),
@@ -448,16 +485,23 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(
+    bool isDark,
+    Color cardColor,
+    Color borderColor,
+    Color primaryColor,
+    Color textDarkColor,
+    Color textSecondaryColor,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -469,7 +513,7 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: const Color(0xFF3525CD).withValues(alpha: 0.08),
+              color: primaryColor.withValues(alpha: isDark ? 0.2 : 0.08),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -477,21 +521,21 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'No conversations yet',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1E202B),
+              color: textDarkColor,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Start a conversation with Gemini to ask questions, brainstorm ideas, or learn something new.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
-              color: Color(0xFF64748B),
+              color: textSecondaryColor,
               height: 1.45,
             ),
           ),
@@ -501,7 +545,7 @@ class _HomeScreenState extends State<HomeScreen> {
               context.go('/newChat');
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3525CD),
+              backgroundColor: primaryColor,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               shape: RoundedRectangleBorder(

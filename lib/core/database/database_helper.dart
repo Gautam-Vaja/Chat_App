@@ -33,6 +33,20 @@ class DatabaseHelper {
             created_at TEXT NOT NULL
           )
           ''');
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+          )
+          ''');
+      },
+      onOpen: (db) async {
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+          )
+          ''');
       },
     );
   }
@@ -85,6 +99,58 @@ class DatabaseHelper {
       'messages',
       where: 'chat_id = ?',
       whereArgs: [chatId],
+    );
+  }
+
+  Future<int> clearAllMessages() async {
+    final db = await database;
+    return await db.delete('messages');
+  }
+
+  Future<int> getTotalChatsCount() async {
+    final db = await database;
+    try {
+      final res = await db.rawQuery('SELECT COUNT(DISTINCT chat_id) as count FROM messages');
+      if (res.isNotEmpty && res.first['count'] != null) {
+        return (res.first['count'] as num).toInt();
+      }
+    } catch (_) {}
+    return 0;
+  }
+
+  Future<int> getTotalMessagesCount() async {
+    final db = await database;
+    try {
+      final res = await db.rawQuery('SELECT COUNT(*) as count FROM messages');
+      if (res.isNotEmpty && res.first['count'] != null) {
+        return (res.first['count'] as num).toInt();
+      }
+    } catch (_) {}
+    return 0;
+  }
+
+  Future<String?> getSetting(String key, {String? defaultValue}) async {
+    final db = await database;
+    try {
+      final res = await db.query(
+        'settings',
+        where: 'key = ?',
+        whereArgs: [key],
+        limit: 1,
+      );
+      if (res.isNotEmpty && res.first['value'] != null) {
+        return res.first['value'].toString();
+      }
+    } catch (_) {}
+    return defaultValue;
+  }
+
+  Future<void> setSetting(String key, String value) async {
+    final db = await database;
+    await db.insert(
+      'settings',
+      {'key': key, 'value': value},
+      conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 }

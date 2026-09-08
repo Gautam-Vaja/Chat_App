@@ -104,35 +104,66 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryColor = theme.colorScheme.primary;
+    final backgroundColor = theme.scaffoldBackgroundColor;
+    final cardColor = theme.cardColor;
+    final textDarkColor = isDark ? Colors.white : const Color(0xFF1E202B);
+    final textSecondaryColor =
+        isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final borderColor =
+        isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
+
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
+        backgroundColor: cardColor,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: primaryColor),
           onPressed: () => context.go('/home'),
         ),
-        title: const Text(
+        title: Text(
           AppStrings.recentHistory,
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF3525CD),
+            color: primaryColor,
           ),
         ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: borderColor, height: 1),
+        ),
       ),
-      body: _buildRecentChatsContent(),
+      body: _buildRecentChatsContent(
+        isDark,
+        cardColor,
+        borderColor,
+        primaryColor,
+        textDarkColor,
+        textSecondaryColor,
+      ),
     );
   }
 
-  Widget _buildRecentChatsContent() {
+  Widget _buildRecentChatsContent(
+    bool isDark,
+    Color cardColor,
+    Color borderColor,
+    Color primaryColor,
+    Color textDarkColor,
+    Color textSecondaryColor,
+  ) {
     if (_isLoading) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 40),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40),
         child: Center(
           child: CircularProgressIndicator(
             strokeWidth: 2.5,
-            color: Color(0xFF3525CD),
+            color: primaryColor,
           ),
         ),
       );
@@ -152,7 +183,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               const SizedBox(height: 12),
               Text(
                 'No conversations matching "${_searchController.text}"',
-                style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+                style: TextStyle(fontSize: 14, color: textSecondaryColor),
               ),
             ],
           ),
@@ -161,8 +192,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
 
     return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
       itemCount: _filteredChats.length,
       separatorBuilder: (context, index) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
@@ -215,7 +246,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           },
           onDismissed: (_) => _deleteChat(chatId),
           child: Material(
-            color: Colors.white,
+            color: cardColor,
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
@@ -229,10 +260,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFF1F5F9)),
+                  border: Border.all(color: borderColor),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.02),
+                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -244,7 +275,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF3525CD).withValues(alpha: 0.08),
+                        color: primaryColor.withValues(alpha: isDark ? 0.2 : 0.08),
                         shape: BoxShape.circle,
                       ),
                       child: Center(
@@ -267,18 +298,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             children: [
                               Text(
                                 chatId,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
-                                  color: Color(0xFF1E202B),
+                                  color: textDarkColor,
                                 ),
                               ),
                               if (timeText.isNotEmpty)
                                 Text(
                                   timeText,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
-                                    color: Color(0xFF94A3B8),
+                                    color: textSecondaryColor,
                                   ),
                                 ),
                             ],
@@ -288,19 +319,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             role == 'user' ? 'You: $lastMessage' : lastMessage,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: Color(0xFF64748B),
+                              color: textSecondaryColor,
                             ),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Icon(
+                    Icon(
                       Icons.arrow_forward_ios_rounded,
                       size: 14,
-                      color: Color(0xFFCBD5E1),
+                      color: isDark ? Colors.grey[600] : const Color(0xFFCBD5E1),
                     ),
                   ],
                 ),
