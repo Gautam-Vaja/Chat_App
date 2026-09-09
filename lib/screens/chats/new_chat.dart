@@ -1,3 +1,4 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:chat_app/core/app_images.dart';
 import 'package:chat_app/core/app_strings.dart';
 import 'package:chat_app/core/database/database_helper.dart';
@@ -276,12 +277,19 @@ class _NewChatState extends State<NewChat> {
                                   : const Radius.circular(16),
                             ),
                           ),
-                          child: Text(
-                            msg['text'] ?? '',
-                            style: TextStyle(
-                              color: isUser ? Colors.white : textDarkColor,
-                              fontSize: 15,
-                            ),
+                          child: AnimatedTextKit(
+                            key: ValueKey(msg['text']),
+                            isRepeatingAnimation: false,
+                            animatedTexts: [
+                              TypewriterAnimatedText(
+                                msg['text'] ?? '',
+                                speed: const Duration(milliseconds: 20),
+                                textStyle: TextStyle(
+                                  color: textDarkColor,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       );
