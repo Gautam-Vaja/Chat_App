@@ -110,10 +110,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final backgroundColor = theme.scaffoldBackgroundColor;
     final cardColor = theme.cardColor;
     final textDarkColor = isDark ? Colors.white : const Color(0xFF1E202B);
-    final textSecondaryColor =
-        isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final borderColor =
-        isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
+    final textSecondaryColor = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFF1F5F9);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -152,11 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             children: [
               const SizedBox(height: 18),
-              _buildRecentHistoryHeader(
-                isDark,
-                primaryColor,
-                textDarkColor,
-              ),
+              _buildRecentHistoryHeader(isDark, primaryColor, textDarkColor),
               const SizedBox(height: 12),
               _buildRecentChatsContent(
                 isDark,
@@ -201,15 +199,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const Spacer(),
-        IconButton(
-          tooltip: 'Refresh',
-          onPressed: _loadRecentChats,
-          icon: Icon(
-            Icons.refresh_rounded,
-            size: 22,
-            color: textSecondaryColor,
-          ),
-        ),
         IconButton(
           tooltip: 'Settings',
           onPressed: () {
@@ -268,10 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           child: const Text(
             AppStrings.seeMore,
-            style: TextStyle(
-              color: Colors.blue,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w600),
           ),
         ),
       ],
@@ -405,7 +391,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   border: Border.all(color: borderColor),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.2 : 0.02,
+                      ),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -417,7 +405,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: primaryColor.withValues(alpha: isDark ? 0.2 : 0.08),
+                        color: primaryColor.withValues(
+                          alpha: isDark ? 0.2 : 0.08,
+                        ),
                         shape: BoxShape.circle,
                       ),
                       child: Center(
@@ -473,7 +463,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     Icon(
                       Icons.arrow_forward_ios_rounded,
                       size: 14,
-                      color: isDark ? Colors.grey[600] : const Color(0xFFCBD5E1),
+                      color: isDark
+                          ? Colors.grey[600]
+                          : const Color(0xFFCBD5E1),
                     ),
                   ],
                 ),

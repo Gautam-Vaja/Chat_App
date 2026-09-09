@@ -141,12 +141,15 @@ class _NewChatState extends State<NewChat> {
     final backgroundColor = theme.scaffoldBackgroundColor;
     final cardColor = theme.cardColor;
     final textDarkColor = isDark ? Colors.white : const Color(0xFF1E202B);
-    final textSecondaryColor =
-        isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final borderColor =
-        isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
-    final aiBubbleColor =
-        isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9);
+    final textSecondaryColor = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFF1F5F9);
+    final aiBubbleColor = isDark
+        ? const Color(0xFF1E293B)
+        : const Color(0xFFF1F5F9);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -322,12 +325,6 @@ class _NewChatState extends State<NewChat> {
             ),
           ),
         ),
-        IconButton(
-          onPressed: () {
-            context.go('/settings');
-          },
-          icon: Icon(Icons.settings, size: 24, color: textSecondaryColor),
-        ),
       ],
     );
   }
@@ -374,7 +371,9 @@ class _NewChatState extends State<NewChat> {
                   color: isDark ? const Color(0xFF0F172A) : Colors.white,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                    color: isDark
+                        ? const Color(0xFF475569)
+                        : const Color(0xFFCBD5E1),
                     width: 1.2,
                   ),
                 ),
@@ -393,7 +392,9 @@ class _NewChatState extends State<NewChat> {
                           ),
                           border: InputBorder.none,
                           isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                          ),
                         ),
                       ),
                     ),
