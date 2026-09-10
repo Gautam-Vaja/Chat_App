@@ -34,7 +34,7 @@ class _AnimatedRobotWidgetState extends State<AnimatedRobotWidget>
 
   Timer? _blinkTimer;
   Timer? _speechBubbleTimer;
-  int _currentGreetingIndex = 0;
+  // int _currentGreetingIndex = 0;
 
   // final List<String> _greetings = [
   //   "Hi there! How can I help you today? ✨",
