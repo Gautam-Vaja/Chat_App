@@ -87,19 +87,43 @@ class _NewChatState extends State<NewChat> {
     );
 
     try {
-      final response = await _geminiService.sendMessage(text);
-      if (mounted) {
+      final stream = _geminiService.sendMessageStream(text);
+      String fullResponse = '';
+      bool isFirstChunk = true;
+
+      await for (final chunk in stream) {
+        if (!mounted) return;
+        fullResponse += chunk;
+
         setState(() {
-          _messages.add({'sender': 'gemini', 'text': response});
-          _isLoading = false;
+          if (isFirstChunk) {
+            isFirstChunk = false;
+            _isLoading = false;
+            _messages.add({'sender': 'gemini', 'text': fullResponse});
+          } else {
+            _messages.last['text'] = fullResponse;
+          }
         });
         _scrollToBottom();
+      }
 
-        // 2. Save Gemini response in database
+      if (isFirstChunk && mounted) {
+        setState(() {
+          _isLoading = false;
+          _messages.add({
+            'sender': 'gemini',
+            'text': 'No response generated. Please try again.',
+          });
+        });
+        _scrollToBottom();
+      }
+
+      // 2. Save Gemini response in database
+      if (fullResponse.isNotEmpty) {
         await DatabaseHelper.instance.insertMessage(
           chatId: currentChatId,
           role: 'gemini',
-          message: response,
+          message: fullResponse,
         );
       }
     } catch (e) {
@@ -107,8 +131,8 @@ class _NewChatState extends State<NewChat> {
         const errorText =
             'Failed to get response. Please check your network or API key.';
         setState(() {
-          _messages.add({'sender': 'gemini', 'text': errorText});
           _isLoading = false;
+          _messages.add({'sender': 'gemini', 'text': errorText});
         });
         _scrollToBottom();
 
@@ -236,7 +260,7 @@ class _NewChatState extends State<NewChat> {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  "Gemini is typing...",
+                                  "Gemini is thinking...",
                                   style: TextStyle(
                                     color: textSecondaryColor,
                                     fontSize: 13,
@@ -332,6 +356,12 @@ class _NewChatState extends State<NewChat> {
               color: primaryColor,
             ),
           ),
+        ),
+        IconButton(
+          onPressed: () {
+            context.push('/history');
+          },
+          icon: Icon(Icons.history, color: primaryColor),
         ),
       ],
     );

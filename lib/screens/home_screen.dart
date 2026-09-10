@@ -1,6 +1,7 @@
 import 'package:chat_app/core/app_images.dart';
 import 'package:chat_app/core/app_strings.dart';
 import 'package:chat_app/core/database/database_helper.dart';
+import 'package:chat_app/widgets/animated_robot_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -11,59 +12,85 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  List<Map<String, dynamic>> _allRecentChats = [];
-  List<Map<String, dynamic>> _filteredChats = [];
-  bool _isLoading = true;
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+  // ============================================================
+  // Animation Controller
+  // ============================================================
+
+  AnimationController? _entranceController;
+
+  void _ensureAnimationInitialized() {
+    if (_entranceController == null) {
+      _entranceController = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 900),
+      );
+      _entranceController!.forward();
+    }
+  }
+
+  // ============================================================
+  // Recent Chats
+  // ============================================================
+
+  List<Map<String, dynamic>> _recentChats = [];
+  bool _isLoadingChats = true;
+
+  // ============================================================
+  // INIT STATE
+  // ============================================================
 
   @override
   void initState() {
     super.initState();
+    _ensureAnimationInitialized();
+
+    // Load recent chats
     _loadRecentChats();
-    _searchController.addListener(_onSearchChanged);
   }
+
+  // ============================================================
+  // DISPOSE
+  // ============================================================
 
   @override
   void dispose() {
-    _searchController.removeListener(_onSearchChanged);
-    _searchController.dispose();
+    _entranceController?.dispose();
     super.dispose();
   }
 
+  // ============================================================
+  // LOAD RECENT CHATS
+  // ============================================================
+
   Future<void> _loadRecentChats() async {
-    setState(() => _isLoading = true);
-    final chats = await DatabaseHelper.instance.getRecentChats();
-    if (mounted) {
-      setState(() {
-        _allRecentChats = chats;
-        _filterChats();
-        _isLoading = false;
-      });
+    try {
+      final chats = await DatabaseHelper.instance.getRecentChats();
+
+      if (mounted) {
+        setState(() {
+          _recentChats = chats;
+          _isLoadingChats = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isLoadingChats = false;
+        });
+      }
     }
   }
 
-  void _onSearchChanged() {
-    _filterChats();
-  }
-
-  void _filterChats() {
-    final query = _searchController.text.trim().toLowerCase();
-    setState(() {
-      if (query.isEmpty) {
-        _filteredChats = List.from(_allRecentChats);
-      } else {
-        _filteredChats = _allRecentChats.where((chat) {
-          final chatId = (chat['chat_id'] ?? '').toString().toLowerCase();
-          final message = (chat['message'] ?? '').toString().toLowerCase();
-          return chatId.contains(query) || message.contains(query);
-        }).toList();
-      }
-    });
-  }
+  // ============================================================
+  // FORMAT TIMESTAMP
+  // ============================================================
 
   String _formatTimestamp(String? isoString) {
-    if (isoString == null || isoString.isEmpty) return '';
+    if (isoString == null || isoString.isEmpty) {
+      return '';
+    }
+
     try {
       final dt = DateTime.parse(isoString).toLocal();
       final now = DateTime.now();
@@ -77,6 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
         final period = dt.hour >= 12 ? 'PM' : 'AM';
         final minute = dt.minute.toString().padLeft(2, '0');
+
         return '$hour:$minute $period';
       } else if (difference.inDays == 1 ||
           (difference.inDays < 2 && dt.day == now.day - 1)) {
@@ -89,469 +117,515 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _deleteChat(String chatId) async {
-    await DatabaseHelper.instance.deleteChat(chatId);
-    _loadRecentChats();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Chat "$chatId" deleted'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
+  // ============================================================
+  // BUILD
+  // ============================================================
 
   @override
   Widget build(BuildContext context) {
+    _ensureAnimationInitialized();
+    final entranceController = _entranceController!;
+
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+
     final primaryColor = theme.colorScheme.primary;
     final backgroundColor = theme.scaffoldBackgroundColor;
     final cardColor = theme.cardColor;
+
     final textDarkColor = isDark ? Colors.white : const Color(0xFF1E202B);
+
     final textSecondaryColor = isDark
         ? const Color(0xFF94A3B8)
         : const Color(0xFF64748B);
+
     final borderColor = isDark
         ? const Color(0xFF334155)
-        : const Color(0xFFF1F5F9);
+        : const Color(0xFFE2E8F0);
 
     return Scaffold(
       backgroundColor: backgroundColor,
+
+      // ========================================================
+      // APP BAR
+      // ========================================================
       appBar: AppBar(
-        backgroundColor: cardColor,
+        backgroundColor: cardColor.withValues(alpha: 0.85),
         elevation: 0,
         surfaceTintColor: Colors.transparent,
-        title: _buildHeading(isDark, textSecondaryColor),
+
+        title: _buildAppBarTitle(isDark, textDarkColor),
+
+        actions: [
+          // ====================================================
+          // HISTORY BUTTON
+          // ====================================================
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                tooltip: 'Chat History',
+
+                onPressed: () async {
+                  await context.push('/history');
+
+                  // Reload chats when returning from history
+                  _loadRecentChats();
+                },
+
+                icon: Icon(
+                  Icons.history_rounded,
+                  size: 24,
+                  color: textDarkColor,
+                ),
+              ),
+
+              // History badge
+              if (_recentChats.isNotEmpty)
+                Positioned(
+                  top: 9,
+                  right: 9,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF6366F1),
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 8,
+                      minHeight: 8,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+
+          // ====================================================
+          // SETTINGS BUTTON
+          // ====================================================
+          IconButton(
+            tooltip: 'Settings',
+
+            onPressed: () {
+              context.push('/settings');
+            },
+
+            icon: Icon(
+              Icons.settings_outlined,
+              size: 22,
+              color: textSecondaryColor,
+            ),
+          ),
+
+          const SizedBox(width: 6),
+        ],
+
+        // Bottom border
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(color: borderColor, height: 1),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          context.go('/newChat');
-        },
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        icon: const Icon(Icons.add_comment_rounded, size: 22),
-        label: const Text(
-          AppStrings.newChat,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 15,
-            letterSpacing: 0.3,
-          ),
-        ),
-      ),
+
+      // ========================================================
+      // BODY
+      // ========================================================
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _loadRecentChats,
-          color: primaryColor,
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            children: [
-              const SizedBox(height: 18),
-              _buildRecentHistoryHeader(isDark, primaryColor, textDarkColor),
-              const SizedBox(height: 12),
-              _buildRecentChatsContent(
-                isDark,
-                cardColor,
-                borderColor,
-                primaryColor,
-                textDarkColor,
-                textSecondaryColor,
+        child: Stack(
+          children: [
+            // ==================================================
+            // AMBIENT BACKGROUND GLOW - TOP LEFT
+            // ==================================================
+            Positioned(
+              top: -60,
+              left: -40,
+              child: Container(
+                width: 200,
+                height: 200,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      primaryColor.withValues(alpha: isDark ? 0.22 : 0.12),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
               ),
-            ],
-          ),
+            ),
+
+            // ==================================================
+            // AMBIENT BACKGROUND GLOW - TOP RIGHT
+            // ==================================================
+            Positioned(
+              top: 140,
+              right: -60,
+              child: Container(
+                width: 240,
+                height: 240,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(
+                        0xFFA855F7,
+                      ).withValues(alpha: isDark ? 0.18 : 0.10),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // ==================================================
+            // SCROLLABLE CONTENT
+            // ==================================================
+            RefreshIndicator(
+              onRefresh: _loadRecentChats,
+              color: primaryColor,
+
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+
+                padding: const EdgeInsets.only(
+                  left: 18,
+                  right: 18,
+                  top: 14,
+                  bottom: 100,
+                ),
+
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // ==================================================
+                    // 1. HERO SECTION
+                    // ==================================================
+                    SlideTransition(
+                      position:
+                          Tween<Offset>(
+                            begin: const Offset(0, 0.15),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: entranceController,
+                              curve: const Interval(
+                                0.0,
+                                0.6,
+                                curve: Curves.easeOutCubic,
+                              ),
+                            ),
+                          ),
+
+                      child: FadeTransition(
+                        opacity: CurvedAnimation(
+                          parent: entranceController,
+                          curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
+                        ),
+
+                        child: AnimatedRobotWidget(
+                          size: 190,
+
+                          onTap: () {
+                            // Add mascot tap action here if needed
+                          },
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // ==================================================
+                    // 2. QUICK PROMPT SECTION
+                    // ==================================================
+                    SlideTransition(
+                      position:
+                          Tween<Offset>(
+                            begin: const Offset(0, 0.2),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: entranceController,
+                              curve: const Interval(
+                                0.25,
+                                0.8,
+                                curve: Curves.easeOutCubic,
+                              ),
+                            ),
+                          ),
+
+                      child: FadeTransition(
+                        opacity: CurvedAnimation(
+                          parent: entranceController,
+                          curve: const Interval(
+                            0.25,
+                            0.8,
+                            curve: Curves.easeIn,
+                          ),
+                        ),
+
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Add quick prompt widgets here
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 26),
+
+                    // ==================================================
+                    // 3. RECENT CONVERSATIONS
+                    // ==================================================
+                    SlideTransition(
+                      position:
+                          Tween<Offset>(
+                            begin: const Offset(0, 0.25),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: entranceController,
+                              curve: const Interval(
+                                0.45,
+                                1.0,
+                                curve: Curves.easeOutCubic,
+                              ),
+                            ),
+                          ),
+
+                      child: FadeTransition(
+                        opacity: CurvedAnimation(
+                          parent: entranceController,
+                          curve: const Interval(
+                            0.45,
+                            1.0,
+                            curve: Curves.easeIn,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // ==================================================
+            // 4. BOTTOM FLOATING QUICK START BAR
+            // ==================================================
+            Positioned(
+              left: 18,
+              right: 18,
+              bottom: 16,
+              child: _buildBottomPromptBar(
+                isDark: isDark,
+                primaryColor: primaryColor,
+                textDarkColor: textDarkColor,
+                textSecondaryColor: textSecondaryColor,
+                cardColor: cardColor,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildHeading(bool isDark, Color textSecondaryColor) {
+  // ============================================================
+  // APP BAR TITLE
+  // ============================================================
+
+  Widget _buildAppBarTitle(bool isDark, Color textDarkColor) {
     return Row(
       children: [
+        // Gemini logo
         Container(
-          padding: const EdgeInsets.all(2),
+          padding: const EdgeInsets.all(2.5),
+
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(
-              color: const Color(0xFF3525CD).withValues(alpha: 0.25),
-              width: 1.5,
+
+            gradient: const LinearGradient(
+              colors: [Color(0xFF6366F1), Color(0xFFA855F7)],
             ),
+
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF6366F1).withValues(alpha: 0.35),
+                blurRadius: 8,
+                spreadRadius: 1,
+              ),
+            ],
           ),
+
           child: const CircleAvatar(
             radius: 15,
+            backgroundColor: Colors.transparent,
             backgroundImage: AssetImage(AppImages.geminiStar),
           ),
         ),
-        const SizedBox(width: 10),
-        const Text(
-          AppStrings.gemini,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            color: Color(0xFF3525CD),
-            letterSpacing: 0.3,
-          ),
-        ),
-        const Spacer(),
-        IconButton(
-          tooltip: 'Settings',
-          onPressed: () {
-            context.go('/settings');
-          },
-          icon: Icon(
-            Icons.settings_outlined,
-            size: 22,
-            color: textSecondaryColor,
-          ),
-        ),
-      ],
-    );
-  }
 
-  Widget _buildRecentHistoryHeader(
-    bool isDark,
-    Color primaryColor,
-    Color textDarkColor,
-  ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
+        const SizedBox(width: 10),
+
+        // ======================================================
+        // APP NAME + STATUS
+        // ======================================================
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              AppStrings.recentHistory,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: textDarkColor,
+            ShaderMask(
+              shaderCallback: (bounds) {
+                return const LinearGradient(
+                  colors: [Color(0xFF4F46E5), Color(0xFF9333EA)],
+                ).createShader(bounds);
+              },
+
+              child: const Text(
+                AppStrings.gemini,
+
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 19,
+                  color: Colors.white,
+                  letterSpacing: 0.4,
+                ),
               ),
             ),
-            const SizedBox(width: 8),
-            if (!_isLoading && _allRecentChats.isNotEmpty)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: primaryColor.withValues(alpha: isDark ? 0.2 : 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '${_filteredChats.length > 5 ? 5 : _filteredChats.length}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: primaryColor,
+
+            // Online status
+            Row(
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF10B981),
+                    shape: BoxShape.circle,
                   ),
                 ),
-              ),
+
+                const SizedBox(width: 4),
+
+                Text(
+                  'Online & Ready',
+
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
           ],
-        ),
-        InkWell(
-          onTap: () {
-            context.go('/history');
-          },
-          child: const Text(
-            AppStrings.seeMore,
-            style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w600),
-          ),
         ),
       ],
     );
   }
 
-  Widget _buildRecentChatsContent(
-    bool isDark,
-    Color cardColor,
-    Color borderColor,
-    Color primaryColor,
-    Color textDarkColor,
-    Color textSecondaryColor,
-  ) {
-    if (_isLoading) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40),
-        child: Center(
-          child: CircularProgressIndicator(
-            strokeWidth: 2.5,
-            color: primaryColor,
+  // ============================================================
+  // RECENT CHATS
+  // ============================================================
+
+  // ============================================================
+  // BOTTOM QUICK PROMPT BAR
+  // ============================================================
+
+  Widget _buildBottomPromptBar({
+    required bool isDark,
+    required Color primaryColor,
+    required Color textDarkColor,
+    required Color textSecondaryColor,
+    required Color cardColor,
+  }) {
+    return Material(
+      color: Colors.transparent,
+
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+
+        decoration: BoxDecoration(
+          color: cardColor.withValues(alpha: 0.96),
+          borderRadius: BorderRadius.circular(20),
+
+          border: Border.all(
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
           ),
+
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
-      );
-    }
 
-    if (_allRecentChats.isEmpty) {
-      return _buildEmptyState(
-        isDark,
-        cardColor,
-        borderColor,
-        primaryColor,
-        textDarkColor,
-        textSecondaryColor,
-      );
-    }
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
 
-    if (_filteredChats.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40),
-        child: Center(
-          child: Column(
+          onTap: () {
+            context.push('/newChat');
+          },
+
+          child: Row(
             children: [
-              const Icon(
-                Icons.search_off_rounded,
-                size: 48,
-                color: Color(0xFF94A3B8),
+              // AI icon
+              Container(
+                width: 40,
+                height: 40,
+
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6366F1), Color(0xFFA855F7)],
+                  ),
+                ),
+
+                child: const Icon(
+                  Icons.auto_awesome_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                'No conversations matching "${_searchController.text}"',
-                style: TextStyle(fontSize: 14, color: textSecondaryColor),
+
+              const SizedBox(width: 12),
+
+              // Text
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Start a new conversation',
+
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: textDarkColor,
+                      ),
+                    ),
+
+                    const SizedBox(height: 2),
+
+                    Text(
+                      'Ask anything to Gemini',
+
+                      style: TextStyle(fontSize: 11, color: textSecondaryColor),
+                    ),
+                  ],
+                ),
               ),
+
+              // Arrow
+              Icon(Icons.arrow_forward_rounded, color: primaryColor, size: 21),
             ],
           ),
         ),
-      );
-    }
-
-    final displayChats = _filteredChats.take(5).toList();
-
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: displayChats.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 10),
-      itemBuilder: (context, index) {
-        final chat = displayChats[index];
-        final chatId = chat['chat_id']?.toString() ?? AppStrings.chatiq;
-        final lastMessage = chat['message']?.toString() ?? '';
-        final role = chat['role']?.toString() ?? 'user';
-        final createdAt = chat['created_at']?.toString() ?? '';
-        final timeText = _formatTimestamp(createdAt);
-
-        return Dismissible(
-          key: Key(chatId),
-          direction: DismissDirection.endToStart,
-          background: Container(
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 20),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEF4444),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(
-              Icons.delete_outline_rounded,
-              color: Colors.white,
-              size: 24,
-            ),
-          ),
-          confirmDismiss: (direction) async {
-            return await showDialog(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: const Text('Delete chat?'),
-                content: Text(
-                  'Are you sure you want to delete chat "$chatId"?',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(false),
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(true),
-                    child: const Text(
-                      'Delete',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-          onDismissed: (_) => _deleteChat(chatId),
-          child: Material(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(16),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () {
-                context.go('/newChat', extra: chatId);
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: borderColor),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(
-                        alpha: isDark ? 0.2 : 0.02,
-                      ),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: primaryColor.withValues(
-                          alpha: isDark ? 0.2 : 0.08,
-                        ),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: ClipOval(
-                          child: Image.asset(
-                            AppImages.geminiStar,
-                            width: 26,
-                            height: 26,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                chatId,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                  color: textDarkColor,
-                                ),
-                              ),
-                              if (timeText.isNotEmpty)
-                                Text(
-                                  timeText,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: textSecondaryColor,
-                                  ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            role == 'user' ? 'You: $lastMessage' : lastMessage,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: textSecondaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 14,
-                      color: isDark
-                          ? Colors.grey[600]
-                          : const Color(0xFFCBD5E1),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildEmptyState(
-    bool isDark,
-    Color cardColor,
-    Color borderColor,
-    Color primaryColor,
-    Color textDarkColor,
-    Color textSecondaryColor,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: borderColor),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: primaryColor.withValues(alpha: isDark ? 0.2 : 0.08),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Image.asset(AppImages.geminiStar, width: 42, height: 42),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No conversations yet',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: textDarkColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Start a conversation with Gemini to ask questions, brainstorm ideas, or learn something new.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              color: textSecondaryColor,
-              height: 1.45,
-            ),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: () {
-              context.go('/newChat');
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 0,
-            ),
-            icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-            label: const Text(
-              'Start New Chat',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-            ),
-          ),
-        ],
       ),
     );
   }

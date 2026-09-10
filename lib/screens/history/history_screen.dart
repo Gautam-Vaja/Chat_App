@@ -110,10 +110,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final backgroundColor = theme.scaffoldBackgroundColor;
     final cardColor = theme.cardColor;
     final textDarkColor = isDark ? Colors.white : const Color(0xFF1E202B);
-    final textSecondaryColor =
-        isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-    final borderColor =
-        isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9);
+    final textSecondaryColor = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+    final borderColor = isDark
+        ? const Color(0xFF334155)
+        : const Color(0xFFF1F5F9);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -123,7 +125,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: primaryColor),
-          onPressed: () => context.go('/home'),
+          onPressed: () => context.go('/newChat'),
         ),
         title: Text(
           AppStrings.recentHistory,
@@ -263,7 +265,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   border: Border.all(color: borderColor),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.02),
+                      color: Colors.black.withValues(
+                        alpha: isDark ? 0.2 : 0.02,
+                      ),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -275,7 +279,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: primaryColor.withValues(alpha: isDark ? 0.2 : 0.08),
+                        color: primaryColor.withValues(
+                          alpha: isDark ? 0.2 : 0.08,
+                        ),
                         shape: BoxShape.circle,
                       ),
                       child: Center(
@@ -331,7 +337,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     Icon(
                       Icons.arrow_forward_ios_rounded,
                       size: 14,
-                      color: isDark ? Colors.grey[600] : const Color(0xFFCBD5E1),
+                      color: isDark
+                          ? Colors.grey[600]
+                          : const Color(0xFFCBD5E1),
                     ),
                   ],
                 ),
