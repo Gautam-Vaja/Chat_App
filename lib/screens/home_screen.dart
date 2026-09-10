@@ -376,16 +376,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
                     ),
 
-                    const SizedBox(height: 10),
-
-                    // ==================================================
-                    // 3. RECENT CONVERSATIONS
-                    // =================================================
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
             ),
-
+            const SizedBox(height: 50),
             // ==================================================
             // 4. BOTTOM FLOATING QUICK START BAR
             // ==================================================
@@ -626,7 +622,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           "Welcome! Your AI assistant is ready to answer questions, solve problems, and create with you. 🤖✨",
           textAlign: TextAlign.center,
           style: GoogleFonts.sora(
-            fontSize: 13.5,
+            fontSize: 20,
             fontWeight: FontWeight.w700,
             color: textDarkColor,
           ),
