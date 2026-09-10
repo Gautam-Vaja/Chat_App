@@ -125,7 +125,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: primaryColor),
-          onPressed: () => context.go('/newChat'),
+          onPressed: () => context.pop(),
         ),
         title: Text(
           AppStrings.recentHistory,

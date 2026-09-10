@@ -3,6 +3,7 @@ import 'package:chat_app/core/app_images.dart';
 import 'package:chat_app/core/app_strings.dart';
 import 'package:chat_app/core/database/database_helper.dart';
 import 'package:chat_app/services/gemini_service.dart';
+import 'package:chat_app/widgets/animated_robot_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -27,6 +28,7 @@ class _NewChatState extends State<NewChat> {
   @override
   void initState() {
     super.initState();
+    _messageController.addListener(_onMessageChanged);
     _chatId = widget.userName;
     // Only load previous messages if an existing chat was selected
     if (_chatId != null && _chatId!.isNotEmpty) {
@@ -34,8 +36,13 @@ class _NewChatState extends State<NewChat> {
     }
   }
 
+  void _onMessageChanged() {
+    setState(() {});
+  }
+
   @override
   void dispose() {
+    _messageController.removeListener(_onMessageChanged);
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -202,10 +209,11 @@ class _NewChatState extends State<NewChat> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const CircleAvatar(
-                          radius: 36,
-                          backgroundImage: AssetImage(AppImages.geminiStar),
-                        ),
+                        // const CircleAvatar(
+                        //   radius: 36,
+                        //   backgroundImage: AssetImage(AppImages.geminiStar),
+                        // ),
+                        AnimatedRobotWidget(),
                         const SizedBox(height: 16),
                         Text(
                           "Chat with $displayName",
@@ -309,7 +317,7 @@ class _NewChatState extends State<NewChat> {
                                 msg['text'] ?? '',
                                 speed: const Duration(milliseconds: 20),
                                 textStyle: TextStyle(
-                                  color: textDarkColor,
+                                  color: isUser ? Colors.white : textDarkColor,
                                   fontSize: 15,
                                 ),
                               ),
@@ -375,105 +383,117 @@ class _NewChatState extends State<NewChat> {
     Color textDarkColor,
     Color textSecondaryColor,
   ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: cardColor,
-        border: Border(top: BorderSide(color: borderColor, width: 1)),
-      ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            // 1. Plus / Attachment Button
-            IconButton(
-              onPressed: () {
-                // Action for attachments / media
-              },
-              icon: Icon(
-                Icons.add_circle_outline_rounded,
-                color: textSecondaryColor,
-                size: 28,
-              ),
-              splashRadius: 24,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
-            const SizedBox(width: 10),
+    final hasText = _messageController.text.trim().isNotEmpty;
 
-            // 2. Rounded Message Input Field
-            Expanded(
-              child: Container(
-                height: 48,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF0F172A) : Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: isDark
-                        ? const Color(0xFF475569)
-                        : const Color(0xFFCBD5E1),
-                    width: 1.2,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _messageController,
-                        style: TextStyle(color: textDarkColor, fontSize: 15),
-                        onSubmitted: (_) => _sendMessage(),
-                        decoration: InputDecoration(
-                          hintText: "Message...",
-                          hintStyle: TextStyle(
-                            color: textSecondaryColor,
-                            fontSize: 15,
-                          ),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        // Open emoji picker
-                      },
-                      icon: Icon(
-                        Icons.sentiment_satisfied_alt_outlined,
-                        color: textSecondaryColor,
-                        size: 22,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      splashRadius: 20,
-                    ),
-                  ],
-                ),
-              ),
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+        child: Container(
+          height: 52,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1E1F20) : Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: isDark ? const Color(0xFF303134) : const Color(0xFFE2E8F0),
+              width: 1,
             ),
-            const SizedBox(width: 10),
-
-            // 3. Circular Send Button
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: primaryColor,
-                shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+                blurRadius: 18,
+                spreadRadius: 1,
+                offset: const Offset(0, 4),
               ),
-              child: IconButton(
-                onPressed: _sendMessage,
-                icon: const Icon(
-                  Icons.send_rounded,
-                  color: Colors.white,
-                  size: 20,
+            ],
+          ),
+          child: Row(
+            children: [
+              // ==================================================
+              // PLUS BUTTON
+              // ==================================================
+              IconButton(
+                onPressed: () {
+                  // TODO: Open attachment picker
+                },
+                icon: Icon(
+                  Icons.add_rounded,
+                  color: isDark ? Colors.white70 : const Color(0xFF5F6368),
+                  size: 24,
                 ),
                 padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                splashRadius: 20,
               ),
-            ),
-          ],
+
+              const SizedBox(width: 4),
+
+              // ==================================================
+              // TEXT FIELD
+              // ==================================================
+              Expanded(
+                child: TextField(
+                  controller: _messageController,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : textDarkColor,
+                    fontSize: 14,
+                  ),
+                  cursorColor: primaryColor,
+                  textInputAction: TextInputAction.send,
+                  keyboardType: TextInputType.text,
+                  onChanged: (_) {
+                    setState(() {});
+                  },
+                  onSubmitted: (_) {
+                    _sendMessage();
+                  },
+                  decoration: InputDecoration(
+                    hintText: "Message...",
+                    hintStyle: TextStyle(
+                      color: isDark ? Colors.white70 : textSecondaryColor,
+                      fontSize: 14,
+                    ),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 6),
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: hasText
+                      ? primaryColor
+                      : (isDark
+                            ? const Color(0xFF2D3748)
+                            : const Color(0xFFE2E8F0)),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  onPressed: hasText ? _sendMessage : null,
+                  icon: Icon(
+                    Icons.send_rounded,
+                    color: hasText
+                        ? Colors.white
+                        : (isDark ? Colors.white38 : const Color(0xFF94A3B8)),
+                    size: 18,
+                  ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 36,
+                    minHeight: 36,
+                  ),
+                  splashRadius: 18,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

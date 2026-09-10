@@ -4,6 +4,7 @@ import 'package:chat_app/core/database/database_helper.dart';
 import 'package:chat_app/widgets/animated_robot_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -300,6 +301,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     // ==================================================
                     // 1. HERO SECTION
                     // ==================================================
+                    const SizedBox(height: 50),
                     SlideTransition(
                       position:
                           Tween<Offset>(
@@ -332,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
                     ),
 
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 100),
 
                     // ==================================================
                     // 2. QUICK PROMPT SECTION
@@ -363,16 +365,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
                         ),
 
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Add quick prompt widgets here
-                          ],
+                        child: _buildQuickPrompts(
+                          isDark: isDark,
+                          cardColor: cardColor,
+                          borderColor: borderColor,
+                          textDarkColor: textDarkColor,
+                          textSecondaryColor: textSecondaryColor,
+                          primaryColor: primaryColor,
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 26),
+                    const SizedBox(height: 10),
 
                     // ==================================================
                     // 3. RECENT CONVERSATIONS
@@ -401,6 +405,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             1.0,
                             curve: Curves.easeIn,
                           ),
+                        ),
+                        child: _buildRecentChatsSection(
+                          isDark: isDark,
+                          cardColor: cardColor,
+                          borderColor: borderColor,
+                          primaryColor: primaryColor,
+                          textDarkColor: textDarkColor,
+                          textSecondaryColor: textSecondaryColor,
                         ),
                       ),
                     ),
@@ -567,8 +579,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
 
-          onTap: () {
-            context.push('/newChat');
+          onTap: () async {
+            await context.push('/newChat');
+            _loadRecentChats();
           },
 
           child: Row(
@@ -627,6 +640,227 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
         ),
       ),
+    );
+  }
+
+  // ============================================================
+  // QUICK PROMPTS & WELCOME BANNER
+  // ============================================================
+
+  Widget _buildQuickPrompts({
+    required bool isDark,
+    required Color cardColor,
+    required Color borderColor,
+    required Color textDarkColor,
+    required Color textSecondaryColor,
+    required Color primaryColor,
+  }) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 30),
+        child: Text(
+          "Welcome! Your AI assistant is ready to answer questions, solve problems, and create with you. 🤖✨",
+          textAlign: TextAlign.center,
+          style: GoogleFonts.sora(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w700,
+            color: textDarkColor,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // RECENT CHATS SECTION
+  // ============================================================
+
+  Widget _buildRecentChatsSection({
+    required bool isDark,
+    required Color cardColor,
+    required Color borderColor,
+    required Color primaryColor,
+    required Color textDarkColor,
+    required Color textSecondaryColor,
+  }) {
+    if (_isLoadingChats) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2.5),
+          ),
+        ),
+      );
+    }
+
+    if (_recentChats.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final displayChats = _recentChats.take(4).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Recent Chats',
+              style: TextStyle(
+                fontSize: 14.5,
+                fontWeight: FontWeight.w700,
+                color: textDarkColor,
+                letterSpacing: 0.2,
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                await context.push('/history');
+                _loadRecentChats();
+              },
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                'View all',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: primaryColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: displayChats.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            final chat = displayChats[index];
+            final chatId = chat['chat_id']?.toString() ?? 'Chat';
+            final lastMessage = chat['message']?.toString() ?? '';
+            final role = chat['role']?.toString() ?? 'user';
+            final createdAt = chat['created_at']?.toString() ?? '';
+            final timeText = _formatTimestamp(createdAt);
+
+            return Material(
+              color: cardColor.withValues(alpha: isDark ? 0.7 : 0.9),
+              borderRadius: BorderRadius.circular(16),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () async {
+                  await context.push('/newChat', extra: chatId);
+                  _loadRecentChats();
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: borderColor),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.2 : 0.03,
+                        ),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: primaryColor.withValues(
+                            alpha: isDark ? 0.2 : 0.08,
+                          ),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: ClipOval(
+                            child: Image.asset(
+                              AppImages.geminiStar,
+                              width: 22,
+                              height: 22,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    chatId,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13.5,
+                                      color: textDarkColor,
+                                    ),
+                                  ),
+                                ),
+                                if (timeText.isNotEmpty) ...[
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    timeText,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: textSecondaryColor,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              role == 'user'
+                                  ? 'You: $lastMessage'
+                                  : lastMessage,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: textSecondaryColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 18,
+                        color: textSecondaryColor.withValues(alpha: 0.7),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

@@ -7,11 +7,7 @@ class AnimatedRobotWidget extends StatefulWidget {
   final double size;
   final VoidCallback? onTap;
 
-  const AnimatedRobotWidget({
-    super.key,
-    this.size = 220,
-    this.onTap,
-  });
+  const AnimatedRobotWidget({super.key, this.size = 220, this.onTap});
 
   @override
   State<AnimatedRobotWidget> createState() => _AnimatedRobotWidgetState();
@@ -40,13 +36,13 @@ class _AnimatedRobotWidgetState extends State<AnimatedRobotWidget>
   Timer? _speechBubbleTimer;
   int _currentGreetingIndex = 0;
 
-  final List<String> _greetings = [
-    "Hi there! How can I help you today? ✨",
-    "Ready to brainstorm or write something great?",
-    "Need code help, answers, or creative ideas?",
-    "Tap a quick prompt or start a new chat! 🚀",
-    "I'm Gemini, your personal AI assistant 💡",
-  ];
+  // final List<String> _greetings = [
+  //   "Hi there! How can I help you today? ✨",
+  //   "Ready to brainstorm or write something great?",
+  //   "Need code help, answers, or creative ideas?",
+  //   "Tap a quick prompt or start a new chat! 🚀",
+  //   "I'm Gemini, your personal AI assistant 💡",
+  // ];
 
   bool _isInitialized = false;
 
@@ -125,21 +121,33 @@ class _AnimatedRobotWidgetState extends State<AnimatedRobotWidget>
       duration: const Duration(milliseconds: 400),
     );
 
-    _tapScaleAnimation = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween<double>(begin: 1.0, end: 1.08), weight: 35),
-      TweenSequenceItem(tween: Tween<double>(begin: 1.08, end: 0.94), weight: 35),
-      TweenSequenceItem(tween: Tween<double>(begin: 0.94, end: 1.0), weight: 30),
-    ]).animate(CurvedAnimation(
-      parent: _tapReactionController,
-      curve: Curves.easeOutBack,
-    ));
+    _tapScaleAnimation =
+        TweenSequence<double>([
+          TweenSequenceItem(
+            tween: Tween<double>(begin: 1.0, end: 1.08),
+            weight: 35,
+          ),
+          TweenSequenceItem(
+            tween: Tween<double>(begin: 1.08, end: 0.94),
+            weight: 35,
+          ),
+          TweenSequenceItem(
+            tween: Tween<double>(begin: 0.94, end: 1.0),
+            weight: 30,
+          ),
+        ]).animate(
+          CurvedAnimation(
+            parent: _tapReactionController,
+            curve: Curves.easeOutBack,
+          ),
+        );
 
     // Auto rotate speech bubble
     _speechBubbleTimer = Timer.periodic(const Duration(seconds: 7), (_) {
       if (mounted) {
         setState(() {
-          _currentGreetingIndex =
-              (_currentGreetingIndex + 1) % _greetings.length;
+          // _currentGreetingIndex =
+          // (_currentGreetingIndex + 1) % _greetings.length;
         });
       }
     });
@@ -161,7 +169,7 @@ class _AnimatedRobotWidgetState extends State<AnimatedRobotWidget>
   void _onRobotTapped() {
     _tapReactionController.forward(from: 0.0);
     setState(() {
-      _currentGreetingIndex = (_currentGreetingIndex + 1) % _greetings.length;
+      // _currentGreetingIndex = (_currentGreetingIndex + 1) % _greetings.length;
     });
     widget.onTap?.call();
   }
@@ -291,64 +299,64 @@ class _AnimatedRobotWidgetState extends State<AnimatedRobotWidget>
           ),
         );
       },
-      child: Container(
-        key: ValueKey<int>(_currentGreetingIndex),
-        margin: const EdgeInsets.symmetric(horizontal: 24),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-        decoration: BoxDecoration(
-          color: isDark
-              ? const Color(0xFF1E293B).withValues(alpha: 0.9)
-              : Colors.white.withValues(alpha: 0.95),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isDark
-                ? const Color(0xFF6366F1).withValues(alpha: 0.3)
-                : const Color(0xFF3525CD).withValues(alpha: 0.18),
-            width: 1.4,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: isDark
-                  ? const Color(0xFF6366F1).withValues(alpha: 0.15)
-                  : const Color(0xFF3525CD).withValues(alpha: 0.09),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF818CF8), Color(0xFFA855F7)],
-                ),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.auto_awesome,
-                size: 13,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                _greetings[_currentGreetingIndex],
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : const Color(0xFF1E293B),
-                  letterSpacing: 0.1,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+      // child: Container(
+      //   key: ValueKey<int>(_currentGreetingIndex),
+      //   margin: const EdgeInsets.symmetric(horizontal: 24),
+      //   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+      //   decoration: BoxDecoration(
+      //     color: isDark
+      //         ? const Color(0xFF1E293B).withValues(alpha: 0.9)
+      //         : Colors.white.withValues(alpha: 0.95),
+      //     borderRadius: BorderRadius.circular(20),
+      //     border: Border.all(
+      //       color: isDark
+      //           ? const Color(0xFF6366F1).withValues(alpha: 0.3)
+      //           : const Color(0xFF3525CD).withValues(alpha: 0.18),
+      //       width: 1.4,
+      //     ),
+      //     boxShadow: [
+      //       BoxShadow(
+      //         color: isDark
+      //             ? const Color(0xFF6366F1).withValues(alpha: 0.15)
+      //             : const Color(0xFF3525CD).withValues(alpha: 0.09),
+      //         blurRadius: 16,
+      //         offset: const Offset(0, 6),
+      //       ),
+      //     ],
+      //   ),
+      //   // child: Row(
+      //   //   mainAxisSize: MainAxisSize.min,
+      //   //   children: [
+      //   //     // Container(
+      //   //     //   padding: const EdgeInsets.all(4),
+      //   //     //   decoration: const BoxDecoration(
+      //   //     //     gradient: LinearGradient(
+      //   //     //       colors: [Color(0xFF818CF8), Color(0xFFA855F7)],
+      //   //     //     ),
+      //   //     //     shape: BoxShape.circle,
+      //   //     //   ),
+      //   //     //   child: const Icon(
+      //   //     //     Icons.auto_awesome,
+      //   //     //     size: 13,
+      //   //     //     color: Colors.white,
+      //   //     //   ),
+      //   //     // ),
+      //   //     // const SizedBox(width: 8),
+      //   //     // Flexible(
+      //   //     //   // child: Text(
+      //   //     //   //   _greetings[_currentGreetingIndex],
+      //   //     //   //   textAlign: TextAlign.center,
+      //   //     //   //   style: TextStyle(
+      //   //     //   //     fontSize: 13.5,
+      //   //     //   //     fontWeight: FontWeight.w600,
+      //   //     //   //     color: isDark ? Colors.white : const Color(0xFF1E293B),
+      //   //     //   //     letterSpacing: 0.1,
+      //   //     //   //   ),
+      //   //     //   // ),
+      //   //     // ),
+      //   //   ],
+      //   // ),
+      // ),
     );
   }
 
@@ -473,12 +481,16 @@ class _AnimatedRobotWidgetState extends State<AnimatedRobotWidget>
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFA855F7).withValues(alpha: 0.35 * glowFactor),
+              color: const Color(
+                0xFFA855F7,
+              ).withValues(alpha: 0.35 * glowFactor),
               blurRadius: 10 * glowFactor,
               spreadRadius: 2,
             ),
             BoxShadow(
-              color: const Color(0xFFC084FC).withValues(alpha: 0.25 * glowFactor),
+              color: const Color(
+                0xFFC084FC,
+              ).withValues(alpha: 0.25 * glowFactor),
               blurRadius: 18 * glowFactor,
               spreadRadius: 4,
             ),
